@@ -1,1 +1,3 @@
 # Just another PCAP Library for Java
+
+This is a try to load PCAP files in Java without native dependencies. A work in progress ...
