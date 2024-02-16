@@ -107,10 +107,18 @@ public class TCPPacket extends TransportPacket{
         return urgentPointer;
     }
 
+    /**
+     * Returns the options and padding of the TCP Packet, can be null if there is no options and padding
+     * @return
+     */
     public byte[] getOptionsAndPadding() {
         return optionsAndPadding;
     }
 
+    /**
+     * Returns the Payload of the TCP Packet, can be null if there is no payload
+     * @return Payload of the TCP Packet
+     */
     public byte[] getPayload() {
         return payload;
     }
