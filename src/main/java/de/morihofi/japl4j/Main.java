@@ -71,7 +71,7 @@ public class Main {
 
         for (TCPStreamBuilder tcpStreamBuilder : tcpStreamBuilders.values()){
             //File end reached, complete all streams
-            System.out.println("-- NEW STREAM ------");
+            System.out.println("--- NEW STREAM ------");
             ByteBuffer completeStream = tcpStreamBuilder.compileStream();
             String streamContent = new String(completeStream.array(), StandardCharsets.UTF_8);
             System.out.println(streamContent);

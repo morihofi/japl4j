@@ -1,5 +1,8 @@
 package de.morihofi.japl4j.packet.ieee802dot3ethernet.layer4;
 
+import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer2.EthernetPacket;
+import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer3.NetworkPacket;
+
 import java.nio.ByteBuffer;
 
 public class TCPPacket extends TransportPacket{
@@ -20,7 +23,8 @@ public class TCPPacket extends TransportPacket{
     private byte[] optionsAndPadding; // Optional, kann variieren
     private byte[] payload;
 
-    public TCPPacket(byte[] data) {
+    public TCPPacket(NetworkPacket netPacket, byte[] data) {
+        super(netPacket);
         ByteBuffer buffer = ByteBuffer.wrap(data);
         sourcePort = Short.toUnsignedInt(buffer.getShort());
         destinationPort = Short.toUnsignedInt(buffer.getShort());

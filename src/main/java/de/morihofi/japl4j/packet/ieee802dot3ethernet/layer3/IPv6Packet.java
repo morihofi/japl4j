@@ -52,9 +52,9 @@ public class IPv6Packet extends NetworkPacket {
 
     public TransportPacket getTransportLayerPacket() {
         if (this.nextHeader == 6) { // TCP
-            return new TCPPacket(this.payload);
+            return new TCPPacket(this, this.payload);
         } else if (this.nextHeader == 17) { // UDP
-            return new UDPPacket(this.payload);
+            return new UDPPacket(this, this.payload);
         } else {
             return null; // For other protocols or unsupported cases
         }
@@ -83,10 +83,11 @@ public class IPv6Packet extends NetworkPacket {
         return nextHeader;
     }
 
+    @Override
     public String getSourceAddress() {
         return sourceAddress;
     }
-
+    @Override
     public String getDestinationAddress() {
         return destinationAddress;
     }

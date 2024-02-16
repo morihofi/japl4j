@@ -5,6 +5,7 @@ import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer4.UDPPacket;
 import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer4.TransportPacket;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 public class IPv4Packet extends NetworkPacket {
     private int version;
@@ -45,9 +46,19 @@ public class IPv4Packet extends NetworkPacket {
         buffer.position(headerLength);
 
         if (totalLength > headerLength) {
-            int payloadLength = totalLength - headerLength;
-            payload = new byte[payloadLength];
-            buffer.get(payload);
+            int expectedPayloadLength = totalLength - headerLength;
+            if (expectedPayloadLength <= buffer.remaining()) {
+                payload = new byte[expectedPayloadLength];
+                buffer.get(payload);
+            } else {
+
+                if (false) {
+                    throw new IllegalArgumentException("Inconsistent packet length. Expected payload length: " + expectedPayloadLength + ", Available bytes: " + buffer.remaining());
+                } else {
+                    payload = new byte[0];
+                }
+
+            }
         } else {
             payload = new byte[0];
         }
@@ -59,10 +70,14 @@ public class IPv4Packet extends NetworkPacket {
 
 
     public TransportPacket getTransportLayerPacket() {
+        if (this.payload == null || (this.payload != null && this.payload.length == 0)) {
+            return null; //Payload is null, probably due to invalid packet or sth. like that
+        }
+
         if (this.protocol == 6) { // TCP
-            return new TCPPacket(this.payload);
+            return new TCPPacket(this, this.payload);
         } else if (this.protocol == 17) { // UDP
-            return new UDPPacket(this.payload);
+            return new UDPPacket(this, this.payload);
         } else {
             return null; // For other protocols or unsupported cases
         }
@@ -84,10 +99,11 @@ public class IPv4Packet extends NetworkPacket {
         return protocol;
     }
 
+    @Override
     public String getSourceAddress() {
         return sourceAddress;
     }
-
+    @Override
     public String getDestinationAddress() {
         return destinationAddress;
     }

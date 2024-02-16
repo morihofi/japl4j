@@ -1,5 +1,8 @@
 package de.morihofi.japl4j.packet.ieee802dot3ethernet.layer4;
 
+import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer2.EthernetPacket;
+import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer3.NetworkPacket;
+
 import java.nio.ByteBuffer;
 
 public class UDPPacket extends TransportPacket {
@@ -9,7 +12,9 @@ public class UDPPacket extends TransportPacket {
     private int checksum;
     private byte[] payload;
 
-    public UDPPacket(byte[] data) {
+    public UDPPacket(NetworkPacket netPacket, byte[] data) {
+        super(netPacket);
+
         ByteBuffer buffer = ByteBuffer.wrap(data);
         sourcePort = Short.toUnsignedInt(buffer.getShort());
         destinationPort = Short.toUnsignedInt(buffer.getShort());
