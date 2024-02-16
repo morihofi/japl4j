@@ -3,12 +3,11 @@ package de.morihofi.japl4j;
 import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer2.EthernetPacket;
 import de.morihofi.japl4j.packet.PcapPacket;
 import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer3.IPv4Packet;
-import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer3.IPv6Packet;
 import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer4.TCPPacket;
-import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer4.TransportPacket;
-import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer4.UDPPacket;
+import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer4.utils.TCPSession;
 import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer4.utils.TCPStreamBuilder;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -17,80 +16,66 @@ import java.util.Map;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        PcapFile pcapFile = PcapFile.openPcapFile(Paths.get("C:\\Users\\Moritz\\Downloads\\http.cap"));
+        PcapFile pcapFile = PcapFile.openPcapFile(Paths.get("C:\\Users\\Moritz\\Downloads\\telnet-raw.pcap"));
         System.out.println(pcapFile.getFileVersion());
         System.out.println(pcapFile.getLinkType());
 
-        Map<String, TCPStreamBuilder> tcpStreamBuilders = new HashMap<>();
+        // Map to manage TCP sessions
+        Map<String, TCPSession> sessions = new HashMap<>();
 
         for (PcapPacket packet : pcapFile) {
-            // Process every Packet
-            System.out.println("Timestamp: " + packet.getTimestampSeconds() + "s " + packet.getTimestampMicroOrNanoSeconds() + "μs");
-            System.out.println("Captured Length: " + packet.getCapturedPacketLength());
-            System.out.println("Original Length: " + packet.getOriginalPacketLength());
             if (packet instanceof EthernetPacket) {
                 EthernetPacket ethernetPacket = (EthernetPacket) packet;
-                System.out.println("Destination MAC: " + getBytesAsHex(ethernetPacket.getDestinationMac()));
-                switch (ethernetPacket.getEtherType()) {
-                    case EthernetPacket.TYPE_IPV4:
-                        IPv4Packet ipv4Packet = (IPv4Packet) ethernetPacket.getIPPacket();
-                        System.out.println("Source IPv4: " + ipv4Packet.getSourceAddress());
-                        System.out.println("Destination IPv4: " + ipv4Packet.getDestinationAddress());
-                        // Verarbeiten des IP-Pakets ...
+                if (ethernetPacket.getEtherType() == EthernetPacket.TYPE_IPV4) {
+                    IPv4Packet ipv4Packet = (IPv4Packet) ethernetPacket.getIPPacket();
+                    if (ipv4Packet.getTransportLayerPacket() instanceof TCPPacket) {
+                        TCPPacket tcpPacket = (TCPPacket) ipv4Packet.getTransportLayerPacket();
+                        String sessionKey = TCPStreamBuilder.getStreamKey(ipv4Packet.getSourceAddress(), tcpPacket.getSourcePort(), ipv4Packet.getDestinationAddress(), tcpPacket.getDestinationPort());
+                        boolean isClientToServer = determineDirection(tcpPacket, ipv4Packet); // Implement this method based on your criteria
 
-                        TransportPacket ipv4PacketTransportLayerPacket = ipv4Packet.getTransportLayerPacket();
-                        if (ipv4PacketTransportLayerPacket instanceof TCPPacket tcpPacket) {
-                            System.out.println("Transport Protocol: TCP");
-                            if(tcpPacket.getPayload() != null){
-                                String streamKey = TCPStreamBuilder.getStreamKey(ipv4Packet.getSourceAddress(), tcpPacket.getSourcePort(), ipv4Packet.getDestinationAddress(), tcpPacket.getDestinationPort());
-                                TCPStreamBuilder streamBuilder = tcpStreamBuilders.computeIfAbsent(streamKey, k -> new TCPStreamBuilder());
-                                //System.out.println(new String(tcpPacket.getPayload()));
-                                streamBuilder.collectPackets(tcpPacket);
-                            }else {
-                                System.out.println("TCP Packet has no payload");
-                            }
-
-                        } else if (ipv4PacketTransportLayerPacket instanceof UDPPacket udpPacket) {
-                            System.out.println("Transport Protocol: UDP");
-                            System.out.println(getBytesAsHex(udpPacket.getPayload()));
-                        }
-
-
-                        break;
-                    case EthernetPacket.TYPE_IPV6:
-                        IPv6Packet ipv6Packet = (IPv6Packet) ethernetPacket.getIPPacket();
-                        System.out.println("Destination IPv6: " + ipv6Packet.getDestinationAddress());
-                        break;
+                        TCPSession session = sessions.computeIfAbsent(sessionKey, k -> new TCPSession());
+                        session.addPacket(tcpPacket, isClientToServer);
+                    }
                 }
-            }else {
-                System.out.println("Got packet of currently unsupported type");
             }
-            System.out.println("--------------------------");
         }
 
+        // Compile and print the streams at the end of packet processing
+        sessions.forEach((sessionKey, session) -> {
+            try {
+                System.out.println("--- NEW STREAM ---");
+                System.out.println("Session: " + sessionKey);
+                System.out.println("Client to Server Stream:");
+                printStreamContent(session.compileClientToServerStream());
+                System.out.println("Server to Client Stream:");
+                printStreamContent(session.compileServerToClientStream());
 
-        for (TCPStreamBuilder tcpStreamBuilder : tcpStreamBuilders.values()){
-            //File end reached, complete all streams
-            System.out.println("--- NEW STREAM ------");
-            ByteBuffer completeStream = tcpStreamBuilder.compileStream();
-            String streamContent = new String(completeStream.array(), StandardCharsets.UTF_8);
-            System.out.println(streamContent);
-        }
+            } catch (IOException e) {
+                System.err.println("Failed to compile stream for session: " + sessionKey);
+                e.printStackTrace();
+            }
+        });
 
         System.out.println("Finish!");
+    }
 
+    private static boolean determineDirection(TCPPacket tcpPacket, IPv4Packet ipv4Packet) {
+        // Implement logic to determine the direction of the traffic
+        // This is a placeholder implementation
+        return true; // Assume all traffic is client to server for demonstration
+    }
 
+    private static void printStreamContent(ByteBuffer stream) {
+        String content = new String(stream.array(), StandardCharsets.UTF_8);
+        System.out.println(content);
     }
 
     static String getBytesAsHex(byte[] bytes) {
-        if(bytes == null){
-            return null;
-        }
-        StringBuilder bobTheBuilder = new StringBuilder();
+        StringBuilder hexString = new StringBuilder();
         for (byte b : bytes) {
-            String st = String.format("%02X", b);
-            bobTheBuilder.append(st);
+            String hex = String.format("%02X", b);
+            hexString.append(hex);
         }
-        return bobTheBuilder.toString();
+        return hexString.toString();
     }
 }

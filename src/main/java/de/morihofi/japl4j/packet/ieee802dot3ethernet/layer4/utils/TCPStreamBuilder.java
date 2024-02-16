@@ -42,6 +42,9 @@ public class TCPStreamBuilder {
      * @return true if packets are identical, false otherwise.
      */
     private boolean arePacketsIdentical(TCPPacket packet1, TCPPacket packet2) {
+        if(packet1.getPayload() == null || packet2.getPayload() == null){
+            return false;
+        }
         return packet1.getPayload().length == packet2.getPayload().length &&
                 ByteBuffer.wrap(packet1.getPayload()).compareTo(ByteBuffer.wrap(packet2.getPayload())) == 0;
     }
@@ -65,7 +68,11 @@ public class TCPStreamBuilder {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
         for (TCPPacket packet : packets.values()) {
-            stream.write(packet.getPayload());
+            if (packet.getPayload() != null) { // Überprüfung hinzugefügt, um NullPointerException zu vermeiden
+                stream.write(packet.getPayload());
+            } else {
+                System.out.println("Warning: A TCP packet without payload was skipped.");
+            }
         }
 
         // Erstelle einen ByteBuffer aus dem gesammelten Stream
