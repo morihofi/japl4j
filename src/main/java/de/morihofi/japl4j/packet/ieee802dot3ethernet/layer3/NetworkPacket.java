@@ -1,4 +1,4 @@
-package de.morihofi.japl4j.packet.layer3;
+package de.morihofi.japl4j.packet.ieee802dot3ethernet.layer3;
 
 import de.morihofi.japl4j.packet.PcapPacket;
 

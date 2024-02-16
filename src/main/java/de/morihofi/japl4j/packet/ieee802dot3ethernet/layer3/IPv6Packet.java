@@ -1,8 +1,8 @@
-package de.morihofi.japl4j.packet.layer3;
+package de.morihofi.japl4j.packet.ieee802dot3ethernet.layer3;
 
-import de.morihofi.japl4j.packet.layer4.TCPPacket;
-import de.morihofi.japl4j.packet.layer4.TransportPacket;
-import de.morihofi.japl4j.packet.layer4.UDPPacket;
+import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer4.TCPPacket;
+import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer4.UDPPacket;
+import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer4.TransportPacket;
 
 import java.nio.ByteBuffer;
 

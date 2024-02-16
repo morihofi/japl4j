@@ -1,4 +1,4 @@
-package de.morihofi.japl4j.packet.layer4;
+package de.morihofi.japl4j.packet.ieee802dot3ethernet.layer4;
 
 import java.nio.ByteBuffer;
 

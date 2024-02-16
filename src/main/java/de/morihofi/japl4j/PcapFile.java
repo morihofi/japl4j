@@ -1,6 +1,6 @@
 package de.morihofi.japl4j;
 
-import de.morihofi.japl4j.packet.layer2.EthernetPacket;
+import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer2.EthernetPacket;
 import de.morihofi.japl4j.packet.PcapPacket;
 
 import java.io.IOException;

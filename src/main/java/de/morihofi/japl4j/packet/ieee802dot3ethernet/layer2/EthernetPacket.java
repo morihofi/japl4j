@@ -1,10 +1,9 @@
-package de.morihofi.japl4j.packet.layer2;
+package de.morihofi.japl4j.packet.ieee802dot3ethernet.layer2;
 
-import de.morihofi.japl4j.PCAP_LINKTYPE;
 import de.morihofi.japl4j.packet.PcapPacket;
-import de.morihofi.japl4j.packet.layer3.IPv4Packet;
-import de.morihofi.japl4j.packet.layer3.IPv6Packet;
-import de.morihofi.japl4j.packet.layer3.NetworkPacket;
+import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer3.IPv4Packet;
+import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer3.IPv6Packet;
+import de.morihofi.japl4j.packet.ieee802dot3ethernet.layer3.NetworkPacket;
 
 /**
  * Ethernet OSI Layer 2
